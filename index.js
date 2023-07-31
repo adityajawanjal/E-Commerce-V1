@@ -1,33 +1,17 @@
 const express = require("express");
+const dotenv = require("dotenv").config();
 const cors = require("cors");
-const http = require("http");
-const socketIO = require("socket.io");
+const router = require("./routes");
+const connectDB = require("./db/db");
 
 const app = express();
-const server = http.createServer(app);
+app.use(express.json());
 app.use(cors());
+app.use('/api',router);
 
-const io = socketIO(server, {
-  cors: {
-    origin: `${process.env.BASE_URL}`,
-  },
-});
-
-io.on("connection", (socket) => {
-  console.log(`New socket Connected.`);
-
-  socket.on('sendMessage',({name , room , message})=>{
-    let msg = {user:name , message:message};
-    socket.join(room);
-    io.to(room).emit('msg',msg);
-  })
-
-  socket.on("disconnect", () => {
-    console.log(`User left.`);
-  });
-});
+connectDB();
 
 const port = process.env.PORT;
-server.listen(port, () => {
-  console.log(`Server listening on PORT : ${port}`);
-});
+app.listen(port , ()=>{
+    console.log(`Server listening on PORT : ${port}`);
+})
